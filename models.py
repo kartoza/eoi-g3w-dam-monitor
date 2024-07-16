@@ -62,10 +62,10 @@ class MonitoringPoint(models.Model):
     v_stdev = models.FloatField(blank=True, null=True)
     coherence = models.FloatField(blank=True, null=True)
     eff_area = models.FloatField(blank=True, null=True)
+    model_run = models.ForeignKey(ModelRun, null=True, on_delete=models.CASCADE)
 
 
 class MonitoringSample(models.Model):
     monitoring_point = models.ForeignKey(MonitoringPoint, on_delete=models.CASCADE)
-    model_run = models.ForeignKey(ModelRun, on_delete=models.CASCADE)
     date = models.DateField()
     value = models.FloatField(blank=True, null=True)
