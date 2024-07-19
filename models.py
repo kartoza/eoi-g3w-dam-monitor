@@ -10,8 +10,11 @@ class TailingsManager(models.Manager):
         return super().get_queryset().using('tailings')
 
 
-class TailingsBaseModel(TailingsBaseModel):
+class TailingsBaseModel(models.Model):
     objects = TailingsManager()
+
+    class Meta:
+        abstract = True
 
 
 class MonitoringTypes(models.TextChoices):
