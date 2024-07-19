@@ -29,7 +29,7 @@ class SortOrder(models.TextChoices):
 
 class Client(TailingsBaseModel):
     name = models.CharField(max_length=100, blank=False)
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.name
