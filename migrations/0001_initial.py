@@ -6,6 +6,26 @@ import django.db.models.deletion
 import django.utils.timezone
 
 
+def add_monitoring_frequency(apps, schema_editor):
+    MonitoringFrequency = apps.get_model('dam_monitor', 'MonitoringFrequency')
+    MonitoringFrequency.objects.get_or_create(
+        name='Historical (Once off)',
+    )
+    MonitoringFrequency.objects.get_or_create(
+        name='Quarterly',
+    )
+    MonitoringFrequency.objects.get_or_create(
+        name='Monthly',
+    )
+    MonitoringFrequency.objects.get_or_create(
+        name='Continuous (Per 11 days)',
+    )
+
+
+def reverse_func(apps, schema_editor):
+    pass
+
+
 class Migration(migrations.Migration):
 
     initial = True
@@ -96,4 +116,5 @@ class Migration(migrations.Migration):
             name='site',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='dam_monitor.site'),
         ),
+        migrations.RunPython(add_monitoring_frequency, reverse_func)
     ]
