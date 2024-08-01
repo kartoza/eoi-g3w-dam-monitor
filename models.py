@@ -64,6 +64,9 @@ class ModelRun(TailingsBaseModel):
     site = models.ForeignKey(Site, on_delete=models.CASCADE)
     date = models.DateTimeField(default=timezone.now)
 
+    def __str__(self):
+        return f"{self.site.name} - {self.date}"
+
 
 class MonitoringPoint(TailingsBaseModel):
     code = models.CharField(null=True, blank=True, max_length=10)
