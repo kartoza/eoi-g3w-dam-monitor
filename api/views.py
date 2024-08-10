@@ -45,7 +45,7 @@ class UploadShapefileAPIView(G3WAPIView):
             site_id = validated_data['site_id']
             model_run_id = validated_data['model_run_id']
             file = validated_data['file']
-            extract_dir = f"/shared-volume/project_data/{client_id}/{site_id}/{model_run_id}/"
+            extract_dir = f"/shared-volume/project_data/shapefiles/{client_id}/{site_id}/{model_run_id}/"
             os.makedirs(extract_dir, exist_ok=True)
             # zip_path = f"/shared-volume/project_data/{client_id}/{site_id}/{model_run_id}/{file.name}"
             with zipfile.ZipFile(file, 'r') as zip_ref:
