@@ -1,38 +1,22 @@
-# coding=utf-8
-"""" API qplotly widgets
-
-.. note:: This program is free software; you can redistribute it and/or modify
-    it under the terms of the Mozilla Public License 2.0.
-
-"""
-
-__author__ = 'lorenzetti@gis3w.it'
-__date__ = '2020-09-23'
-__copyright__ = 'Copyright 2015 - 2020, Gis3w'
-
-from rest_framework import generics
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import BasicAuthentication, TokenAuthentication
-from rest_framework.response import Response
+import os
+import zipfile
+from core.api.base.views import G3WAPIView, Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from django.core.exceptions import ValidationError
-
-from core.api.authentication import CsrfExemptSessionAuthentication
-from dam_monitor.models import Site
 from django.shortcuts import get_object_or_404
+
+from dam_monitor.models import Site
+from .serializers import UploadShapefileSerializer
+from .permissions import UploadShapefilePermission
 
 import logging
 
 logger = logging.getLogger('g3wadmin.debug')
 
 
-class GetRelativeOrbit(APIView):
+class GetRelativeOrbit(G3WAPIView):
     """Get Relative Orbit of a site
     """
-
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [TokenAuthentication, BasicAuthentication]
 
     def get(self, request, site_id):
         try:
@@ -41,3 +25,38 @@ class GetRelativeOrbit(APIView):
             return Response({"error": e.message}, status=HTTP_400_BAD_REQUEST)
 
         return Response({"relative_orbit": site.relative_orbit})
+
+
+class UploadShapefileAPIView(G3WAPIView):
+    """
+    API for uploadin shapefile
+    """
+    permission_classes = (
+        UploadShapefilePermission,
+    )
+    serializer_class = UploadShapefileSerializer
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            validated_data = serializer.validated_data
+            client_id = validated_data['client_id']
+            site_id = validated_data['site_id']
+            model_run_id = validated_data['model_run_id']
+            file = validated_data['file']
+            extract_dir = f"/shared-volume/project_data/{client_id}/{site_id}/{model_run_id}/"
+            os.makedirs(extract_dir, exist_ok=True)
+            # zip_path = f"/shared-volume/project_data/{client_id}/{site_id}/{model_run_id}/{file.name}"
+            with zipfile.ZipFile(file, 'r') as zip_ref:
+                # Extract all files to the specified directory
+                zip_ref.extractall(extract_dir)
+
+                # Get the list of extracted files
+                extracted_files = zip_ref.namelist()
+                shp_filename = [f for f in extracted_files if f.endswith('.shp')]
+                if len(shp_filename) > 0:
+                    shp_filename = shp_filename[0]
+                    return Response({"filepath": os.path.join(extract_dir, shp_filename)})
+                else:
+                    return Response({"message": "No .shp file"}, status=HTTP_400_BAD_REQUEST)
